@@ -1,0 +1,12 @@
+node_modules/
+bin/
+.env
+.env.local
+.env.*.local
+.env.setup-secrets
+*.mp4
+/tmp/
+*.log
+.DS_Store
+
+.vercel

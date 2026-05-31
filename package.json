@@ -1,0 +1,22 @@
+{
+  "name": "reel-repost-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot: Reel link → caption → publish to Facebook pages",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "start:24-7": "pm2 start ecosystem.config.cjs",
+    "logs": "pm2 logs reel-bot",
+    "list-pages": "node scripts/list-pages.js",
+    "test-resolve": "node scripts/test-resolve.js",
+    "vercel:dev": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/kv": "^3.0.0",
+    "node-telegram-bot-api": "^0.64.0",
+    "axios": "^1.6.0",
+    "form-data": "^4.0.0",
+    "yt-dlp-wrap": "^2.3.12",
+    "dotenv": "^16.3.1"
+  }
+}
