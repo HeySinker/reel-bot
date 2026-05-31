@@ -14,7 +14,7 @@
 |-----|----------|
 | البوت + webhook + نشر فيسبوك | **Vercel** ✅ |
 | استخراج رابط الفيديو | **خارج Vercel** (خدمة صغيرة أو RapidAPI) |
-| yt-dlp | **Railway / Render / VPS** فقط |
+| yt-dlp | **Render Free / Oracle VPS / جهازك** — ليس Railway مجاني دائم |
 
 ---
 
@@ -41,25 +41,20 @@ Vercel → **Storage** → Redis → Link to project
 
 بدون Redis: الجلسة تضيع بين كل خطوة.
 
-### 3) خدمة استخراج الفيديو (مجاني — موصى به)
+### 3) خدمة استخراج الفيديو (خارج Vercel)
 
 المجلد **[resolver-service](./resolver-service/)** — Express + yt-dlp في Docker.
 
-**نشر على Railway (مجاني للبداية):**
+**مجاني عملياً:**
 
-1. railway.app → مشروع جديد من GitHub
-2. **Root Directory:** `resolver-service`
-3. `RESOLVER_SECRET` = سر عشوائي
-4. انسخ URL العام
+| الخيار | التكلفة |
+|--------|---------|
+| **[Render Free](https://render.com)** | $0 — بطيء عند «النوم» |
+| **Oracle Cloud Always Free** | $0 دائماً — VPS |
+| **Railway** | رصيد محدود ثم ~$5/شهر — **ليس مجاني دائم** |
+| **`npm start` على جهازك** | $0 — بدون Vercel أصلاً |
 
-في Vercel:
-
-```env
-VIDEO_RESOLVER_URL=https://YOUR-APP.up.railway.app/resolve
-RESOLVER_SECRET=نفس_السر
-```
-
-تفاصيل: [resolver-service/README.md](./resolver-service/README.md)
+تفاصيل النشر: [resolver-service/README.md](./resolver-service/README.md)
 
 ### 4) خطة Vercel
 
@@ -80,10 +75,10 @@ https://YOUR-APP.vercel.app/api/setup-webhook?secret=SETUP_SECRET
 
 | الخيار | مجاني؟ | ملاحظة |
 |--------|--------|--------|
-| **resolver-service + Railway** | مجاني/رخيص | الأفضل — نفس yt-dlp |
-| RapidAPI | حص محدود | ما جرّبته |
-| Cobalt خاص | تحتاج سيرفر | أعقد |
-| `npm start` على جهازك | ✅ | بدون Vercel |
+| **Render Free + resolver** | ✅ مع بطء البرودة | موصى به مع Vercel |
+| **Oracle VPS + resolver** | ✅ دائماً | 24/7 |
+| **Railway** | ❌ محدود ثم مدفوع | لا يُوصى كمجاني |
+| **`npm start` محلياً** | ✅ | الأبسط — بدون Vercel |
 
 ---
 

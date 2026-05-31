@@ -1,88 +1,76 @@
 # خدمة استخراج الفيديو (لـ Vercel)
 
-Vercel **لا يشغّل yt-dlp**. هذه الخدمة الصغيرة (~50 سطر) تُنشر في **5–10 دقائق** ويستدعيها البوت على Vercel.
+Vercel **لا يشغّل yt-dlp**. هذه الخدمة تُستضاف **خارج Vercel** ويستدعيها البوت عبر `VIDEO_RESOLVER_URL`.
 
-## الأبسط: Railway (موصى به)
+---
 
-| لماذا Railway | |
-|---------------|--|
-| يكتشف `Dockerfile` تلقائياً | لا إعداد يدوي لـ yt-dlp |
-| ربط GitHub | تحديث تلقائي عند push |
-| URL عام فوراً | جاهز لـ `VIDEO_RESOLVER_URL` |
+## ⚠️ تكلفة الاستضافة (صريح)
 
-### خطوات (نسخ ولصق)
+| المنصة | الواقع |
+|--------|--------|
+| **Railway** | تجربة ~$5 ثم خطة Free بحد **~$1/شهر** — غالباً **لا تكفي** لخدمة دائمة؛ بعدها Hobby **$5/شهر** |
+| **Render Free** | **مجاني** لكن السيرفر «ينام» → أول طلب بطيء (30–60 ث) |
+| **Oracle Cloud Always Free** | **مجاني دائماً** (VPS) — الأفضل لـ 24/7 بدون اشتراك |
+| **جهازك + `npm start`** | **مجاني 100%** — البوت + yt-dlp معاً (بدون Vercel) |
 
-1. [railway.app](https://railway.app) → تسجيل → **New Project** → **Deploy from GitHub repo**
-2. اختر هذا المستودع → **Root Directory**: `resolver-service`
-3. **Variables** → أضف:
-   ```
-   RESOLVER_SECRET=ضع_سراً_عشوائياً_طويلاً
-   ```
-4. **Settings** → **Networking** → **Generate Domain**
-5. انسخ الرابط، مثال: `https://reel-resolver-production.up.railway.app`
+اعتذر عن أي توثيق سابق قدّم Railway كـ «مجاني بالكامل» — ذلك غير دقيق لعام 2026.
 
-### ربط Vercel (دقيقة واحدة)
+---
 
-في [Vercel → Environment Variables](https://vercel.com):
+## موصى به للمجاني: Render
 
+1. [render.com](https://render.com) → **New +** → **Web Service**
+2. اربط GitHub: **HeySinker/reel-bot**
+3. **Root Directory:** `resolver-service`
+4. **Runtime:** Docker
+5. **Instance type:** Free
+6. Environment: `RESOLVER_SECRET` = سر عشوائي طويل
+7. انسخ URL مثل `https://reelbot-resolver.onrender.com`
+
+### Vercel
+
+```env
+VIDEO_RESOLVER_URL=https://YOUR-SERVICE.onrender.com/resolve
+RESOLVER_SECRET=نفس_السر
 ```
-VIDEO_RESOLVER_URL=https://YOUR-DOMAIN.up.railway.app/resolve
-RESOLVER_SECRET=نفس_السر_من_الخطوة_3
-```
 
-ثم: `npx vercel --prod`
+> أول طلب بعد ساعات خمول قد يكون بطيئاً — هذا طبيعي على الخطة المجانية.
 
-### اختبار قبل التيليغرام
+---
+
+## مجاني دائماً: Oracle Cloud (resolver فقط)
+
+دليل VPS: [README-24-7.md](../README-24-7.md)
+
+على Ubuntu:
 
 ```bash
-curl -X POST "https://YOUR-DOMAIN.up.railway.app/resolve" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_SECRET" \
-  -d "{\"url\":\"https://www.facebook.com/share/r/XXXX/\"}"
+git clone https://github.com/HeySinker/reel-bot.git
+cd reel-bot/resolver-service
+# Docker أو: apt install ffmpeg + yt-dlp + npm start
 ```
-
-يجب أن ترى `"download_url": "https://...mp4..."`
 
 ---
 
-## بديل: Render (مجاني — أبطأ أول طلب)
+## الأبسط على الإطلاق (بدون Vercel)
 
-1. [render.com](https://render.com) → **New +** → **Web Service** → GitHub
-2. Root: `resolver-service`، **Docker**
-3. Env: `RESOLVER_SECRET`
-4. نفس `VIDEO_RESOLVER_URL` على Vercel
+```bash
+cd reel-bot
+npm install
+npm start
+```
 
-> الخطة المجانية: السيرفر «ينام» → أول طلب بعد ساعات قد يأخذ 30–60 ثانية.
+yt-dlp على جهازك — **لا resolver منفصل ولا Railway**.
 
 ---
-
-## مقارنة سريعة
-
-| | Railway | Render Free | Oracle VPS |
-|--|---------|-------------|------------|
-| السهولة | ⭐⭐⭐ | ⭐⭐ | ⭐ |
-| السرعة | سريع | بطيء عند البرودة | سريع |
-| التكلفة | رصيد مجاني ثم رخيص | مجاني | مجاني دائم |
-| موصى به | **نعم** | إن لم ترد Railway | لاحقاً 24/7 |
-
-## ربط Vercel
-
-في Vercel → Environment Variables:
-
-```
-VIDEO_RESOLVER_URL=https://xxx.up.railway.app/resolve
-RESOLVER_SECRET=نفس_السر_من_Railway
-```
-
-احذف `RAPIDAPI_*` إن لم تعد تحتاجها.
 
 ## اختبار
 
 ```bash
-curl -X POST https://xxx.up.railway.app/resolve \
+curl -X POST "https://YOUR-HOST/resolve" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_SECRET" \
-  -d '{"url":"https://www.facebook.com/share/r/..."}'
+  -d "{\"url\":\"https://www.facebook.com/share/r/XXXX/\"}"
 ```
 
 يجب أن ترى `download_url`.
