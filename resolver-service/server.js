@@ -1,6 +1,5 @@
 /**
- * خدمة صغيرة لاستخراج رابط mp4 — تُنشر على Railway/Render (مجاني).
- * Vercel يستدعيها عبر VIDEO_RESOLVER_URL.
+ * خدمة صغيرة لاستخراج رابط mp4 + كابشن — تُنشر على Render.
  */
 const express = require('express');
 const { execFile } = require('child_process');
@@ -10,6 +9,24 @@ const execFileAsync = promisify(execFile);
 const app = express();
 const PORT = process.env.PORT || 3080;
 const SECRET = process.env.RESOLVER_SECRET?.trim();
+const YTDLP = '/usr/local/bin/yt-dlp';
+
+const ytdlp = (args) =>
+  execFileAsync(YTDLP, args, { timeout: 120000, maxBuffer: 10 * 1024 * 1024 });
+
+async function fetchCaption(url) {
+  try {
+    const { stdout } = await ytdlp(['--no-warnings', '--no-playlist', '--no-download', '-j', url]);
+    const info = JSON.parse(stdout);
+    for (const key of ['description', 'title', 'fulltitle', 'alt_title']) {
+      const v = info[key];
+      if (typeof v === 'string' && v.trim() && v !== 'NA') return v.trim();
+    }
+  } catch (e) {
+    console.warn('caption:', e.message?.slice(0, 120));
+  }
+  return '';
+}
 
 app.use(express.json({ limit: '1mb' }));
 
@@ -32,12 +49,12 @@ app.post('/resolve', async (req, res) => {
   }
 
   try {
-    const { stdout } = await execFileAsync(
-      'yt-dlp',
-      ['-g', '-f', 'best[ext=mp4]/best', '--no-playlist', url],
-      { timeout: 120000, maxBuffer: 10 * 1024 * 1024 }
-    );
-    const direct = stdout
+    const [videoOut, caption] = await Promise.all([
+      ytdlp(['-g', '-f', 'best[ext=mp4]/best', '--no-playlist', url]),
+      fetchCaption(url),
+    ]);
+
+    const direct = videoOut.stdout
       .trim()
       .split('\n')
       .map((l) => l.trim())
@@ -47,7 +64,7 @@ app.post('/resolve', async (req, res) => {
       return res.status(422).json({ error: 'No video URL from yt-dlp' });
     }
 
-    return res.json({ download_url: direct, caption: '' });
+    return res.json({ download_url: direct, caption });
   } catch (err) {
     console.error('resolve error:', err.stderr || err.message);
     return res.status(500).json({
